@@ -1,0 +1,50 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #ffffff;
+    color: #000;
+}
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 50px;
+    background-color: #ffffff;
+}
+.header .logo {
+    font-size: 24px;
+    font-weight: bold;
+}
+.header nav a {
+    margin: 0 15px;
+    text-decoration: none;
+    color: #000;
+    font-size: 18px;
+}
+.hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 50px;
+    max-width: 1200px;
+    margin: auto;
+}
+.hero-text {
+    max-width: 50%;
+}
+.hero-text h1 {
+    font-size: 36px;
+    margin: 0;
+}
+.hero-text p {
+    margin: 20px 0;
+    font-size: 18px;
+}
+.hero-image {
+    border-radius: 50%;
+    width: 400px;
+    height: 400px;
+    background: url('AK1.webp') no-repeat center center;
+    background-size: cover;
+}
