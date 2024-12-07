@@ -68,3 +68,33 @@ embed {
 .resume-button:hover {
     background-color: #0056b3;
 }
+.menu {
+    display: none;
+}
+
+.menu-toggle {
+    display: block;
+}
+
+/* Default styles (mobile-first) */
+body {
+    font-size: 16px;
+}
+
+/* Styles for larger screens (e.g., tablets) */
+@media (min-width: 768px) {
+    body {
+        font-size: 18px;
+    }
+}
+
+/* Styles for desktops */
+@media (min-width: 1024px) {
+    body {
+        font-size: 20px;
+    }
+}
+.content {
+    width: 100%; /* Adjusts to screen size */
+    padding: 10px;
+}
