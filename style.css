@@ -68,3 +68,92 @@ embed {
 .resume-button:hover {
     background-color: #0056b3;
 }
+
+
+
+/* General Styles (Mobile-First) */
+.content {
+    padding: 20px;
+    text-align: center; /* Center-align for a clean mobile look */
+    background-color: #f9f9f9;
+}
+
+.content h1 {
+    font-size: 1.8rem; /* Slightly larger font for mobile */
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.content p {
+    font-size: 1rem;
+    line-height: 1.5;
+    margin-bottom: 20px;
+    color: #555;
+}
+
+.cta-button {
+    display: inline-block;
+    padding: 12px 20px;
+    background-color: #007bff;
+    color: white;
+    font-size: 1rem;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.cta-button:hover {
+    background-color: #0056b3;
+}
+
+/* Larger Screens (Tablets and Desktops) */
+@media (min-width: 768px) {
+    .content {
+        padding: 40px; /* More spacing for larger screens */
+        text-align: left; /* Align left for a professional look */
+        max-width: 800px; /* Constrain width for readability */
+        margin: 0 auto; /* Center content horizontally */
+    }
+
+    .content h1 {
+        font-size: 2.5rem; /* Larger font size for desktops */
+    }
+
+    .content p {
+        font-size: 1.2rem;
+    }
+
+    .cta-button {
+        font-size: 1.2rem;
+        padding: 15px 25px;
+    }
+}
+
+/* Very Large Screens (Desktops over 1200px) */
+@media (min-width: 1200px) {
+    .content {
+        max-width: 1000px; /* Increase maximum width for wide screens */
+    }
+
+    .content h1 {
+        font-size: 3rem;
+    }
+
+    .content p {
+        font-size: 1.5rem;
+    }
+}
+
+
+.social-links a {
+    font-size: 3rem; /* Icon size */
+    color: #0077b5; /* LinkedIn's blue color */
+    margin: 0 10px;
+    padding: 12px 20px;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.social-links a:hover {
+    transform: scale(1.1);
+    opacity: 0.8;
+}
