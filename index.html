@@ -6,6 +6,13 @@
     <title>Akash Balakrishnan</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link rel="preload" as="image" href="AK1.webp" type="image/webp">
+    <meta name="description" content="Akash Balakrishnan - Software developer portfolio. Projects in AI, full-stack, and systems programming.">
+    <meta property="og:title" content="Akash Balakrishnan">
+    <meta property="og:description" content="Explore my projects and experience">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://akashbalakrish.com/">
+    <link rel="icon" href="AK1.webp" type="image/webp">
 
 
     
@@ -17,6 +24,24 @@
         .then(response => response.text())
         .then(data => {
         document.getElementById('header-placeholder').innerHTML = data;
+        // Mobile menu toggle
+        const toggle = document.querySelector('.menu-toggle');
+        const nav = document.getElementById('primary-nav');
+        if (toggle && nav) {
+          toggle.addEventListener('click', (e) => {
+            const isOpen = nav.classList.toggle('open');
+            toggle.setAttribute('aria-expanded', String(isOpen));
+            toggle.setAttribute('aria-label', isOpen ? 'Close menu' : 'Open menu');
+            e.stopPropagation();
+          });
+          document.addEventListener('click', (e) => {
+            if (!nav.contains(e.target) && e.target !== toggle && nav.classList.contains('open')) {
+              nav.classList.remove('open');
+              toggle.setAttribute('aria-expanded', 'false');
+              toggle.setAttribute('aria-label', 'Open menu');
+            }
+          });
+        }
         });
     </script>
  
@@ -39,11 +64,11 @@
                 <i class="fas fa-file-pdf"></i> Download My Resume
             </a> 
         </div>-->
-       
+        
         
     </div>
     
-    <div class="hero-image"></div>
+    <img class="hero-image" src="AK1.webp" alt="Portrait of Akash Balakrishnan" width="400" height="400" loading="eager" fetchpriority="high">
     </section>
 </body>
 </html>

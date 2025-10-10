@@ -11,16 +11,43 @@ body {
     align-items: center;
     padding: 20px 50px;
     background-color: #ffffff;
+    position: relative;
 }
 .header .logo {
     font-size: 24px;
     font-weight: bold;
 }
-.header nav a {
+.header .logo a {
+    color: #000;
+    text-decoration: none;
+}
+.menu-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    width: 40px;
+    height: 40px;
+    background: transparent;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.menu-toggle span {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: #000;
+}
+.header nav a, .header .nav a {
     margin: 0 15px;
     text-decoration: none;
     color: #000;
     font-size: 18px;
+}
+.header nav a:hover, .header .nav a:hover {
+    opacity: 0.7;
 }
 .hero {
     display: flex;
@@ -45,8 +72,8 @@ body {
     border-radius: 50%;
     width: 400px;
     height: 400px;
-    background: url('AK1.webp') no-repeat center center;
-    background-size: cover;
+    object-fit: cover;
+    display: block;
 }
 
 embed {
@@ -156,4 +183,54 @@ embed {
 .social-links a:hover {
     transform: scale(1.1);
     opacity: 0.8;
+}
+
+/* Mobile-first responsive nav and hero */
+@media (max-width: 767px) {
+    .header {
+        padding: 16px 20px;
+    }
+    .menu-toggle {
+        display: flex;
+    }
+    .header .nav {
+        position: absolute;
+        top: 64px;
+        right: 20px;
+        background: #fff;
+        border: 1px solid #eee;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+        border-radius: 8px;
+        padding: 10px 12px;
+        display: none;
+        flex-direction: column;
+        z-index: 1000;
+    }
+    .header .nav.open {
+        display: flex;
+    }
+    .header .nav a {
+        margin: 8px 6px;
+        font-size: 16px;
+    }
+
+    .hero {
+        flex-direction: column;
+        gap: 24px;
+        padding: 24px;
+    }
+    .hero-text {
+        max-width: 100%;
+        text-align: center;
+    }
+    .hero-text h1 {
+        font-size: 28px;
+    }
+    .hero-text p {
+        font-size: 16px;
+    }
+    .hero-image {
+        width: 220px;
+        height: 220px;
+    }
 }
