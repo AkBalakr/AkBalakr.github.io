@@ -9,14 +9,31 @@
     
 </head>
 <body>
-    <header class="header">
-        <div class="logo">Akash Balakrishnan</div>
-        <nav>
-            <a href="index.html">Home</a>
-            <a href="projects.html">Projects</a>
-            <a href="about.html">About Me</a>
-        </nav>
-    </header>
+    <div id="header-placeholder"></div>
+    <script>
+      fetch('components/header.html')
+        .then(r => r.text())
+        .then(html => {
+          document.getElementById('header-placeholder').innerHTML = html;
+          const toggle = document.querySelector('.menu-toggle');
+          const nav = document.getElementById('primary-nav');
+          if (toggle && nav) {
+            toggle.addEventListener('click', (e) => {
+              const isOpen = nav.classList.toggle('open');
+              toggle.setAttribute('aria-expanded', String(isOpen));
+              toggle.setAttribute('aria-label', isOpen ? 'Close menu' : 'Open menu');
+              e.stopPropagation();
+            });
+            document.addEventListener('click', (e) => {
+              if (!nav.contains(e.target) && e.target !== toggle && nav.classList.contains('open')) {
+                nav.classList.remove('open');
+                toggle.setAttribute('aria-expanded', 'false');
+                toggle.setAttribute('aria-label', 'Open menu');
+              }
+            });
+          }
+        });
+    </script>
     <section class="hero">
         <div class="hero-text">
             <h1>I am Akash Balakrishnan <br> </h1>
@@ -24,7 +41,7 @@
           <!-- Add Resume Download Section -->
           
     </div>
-    <div class="hero-image"></div>
+    <img class="hero-image" src="AK1.webp" alt="Portrait of Akash Balakrishnan" width="400" height="400" loading="lazy">
     </section>
 </body>
 </html>
