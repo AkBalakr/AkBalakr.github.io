@@ -173,10 +173,11 @@ let state = {
   castling     : [true, true, true, true],
   // En passant target square [row, col] or null
   enPassant    : null,
-  // Half-move clock (for 50-move rule tracking, not enforced here — engine avoids it)
+  // Half-move clock (used to enforce the 50-move draw rule)
   halfMove     : 0,
   moveNumber   : 1,
   history      : [],   // stack of {board, castling, enPassant, halfMove, captured}
+  positionHistory : [], // position keys for threefold repetition detection
   lastMove     : null, // {from:[r,c], to:[r,c]} for highlighting
   capturedByWhite : [],
   capturedByBlack : [],
@@ -186,6 +187,12 @@ let state = {
   botSpeed     : 500,     // ms delay between bot moves in bvb
   botDepth     : 3,
 };
+
+function getPositionKey(board, turn, castling, enPassant) {
+  const castlingKey = castling.map(v => (v ? "1" : "0")).join("");
+  const epKey = enPassant ? `${enPassant[0]},${enPassant[1]}` : "-";
+  return `${turn}|${castlingKey}|${epKey}|${board.flat().join(",")}`;
+}
 
 
 // ================================================================
@@ -618,6 +625,9 @@ function findBestMove(board, color, castling, enPassant, maxDepth) {
 // ================================================================
 
 function applyMove(move) {
+  const movedPiece = state.board[move[0]][move[1]];
+  const movedType = Math.abs(movedPiece);
+
   const { board: nb, newCastling, newEnPassant, captured } =
     applyMoveToBoard(state.board, move, state.castling);
 
@@ -628,6 +638,7 @@ function applyMove(move) {
     enPassant  : state.enPassant,
     halfMove   : state.halfMove,
     lastMove   : state.lastMove,
+    positionHistoryLength : state.positionHistory.length,
     capturedByWhite : state.capturedByWhite.slice(),
     capturedByBlack : state.capturedByBlack.slice(),
   });
@@ -647,9 +658,14 @@ function applyMove(move) {
   state.castling  = newCastling;
   state.enPassant = newEnPassant;
   state.lastMove  = { from: [move[0], move[1]], to: [move[2], move[3]] };
-  state.halfMove++;
+  const isCapture = captured !== 0 || move[4] === "ep";
+  state.halfMove = (movedType === PIECES.P || isCapture) ? 0 : state.halfMove + 1;
   if (state.turn === BLACK) state.moveNumber++;
   state.turn = -state.turn;
+
+  state.positionHistory.push(
+    getPositionKey(state.board, state.turn, state.castling, state.enPassant)
+  );
 }
 
 function undoMove() {
@@ -660,6 +676,7 @@ function undoMove() {
   state.enPassant       = prev.enPassant;
   state.halfMove        = prev.halfMove;
   state.lastMove        = prev.lastMove;
+  state.positionHistory = state.positionHistory.slice(0, prev.positionHistoryLength);
   state.capturedByWhite = prev.capturedByWhite;
   state.capturedByBlack = prev.capturedByBlack;
   state.turn = -state.turn;
@@ -667,6 +684,19 @@ function undoMove() {
 }
 
 function checkGameOver() {
+  const currentPosKey = getPositionKey(state.board, state.turn, state.castling, state.enPassant);
+  const repetitions = state.positionHistory.reduce((count, key) =>
+    count + (key === currentPosKey ? 1 : 0), 0
+  );
+
+  if (repetitions >= 3) {
+    return { type: "draw-repetition" };
+  }
+
+  if (state.halfMove >= 100) {
+    return { type: "draw-fifty-move" };
+  }
+
   const moves = getLegalMoves(state.board, state.turn, state.castling, state.enPassant);
   if (moves.length > 0) return null;
   if (isKingInCheck(state.board, state.turn)) {
@@ -873,6 +903,12 @@ function handleGameOver(result) {
     setStatus(`Checkmate! ${result.winner} wins!`);
     if (result.winner === "White") wins.white++;
     else                           wins.black++;
+  } else if (result.type === "draw-repetition") {
+    setStatus("Draw by threefold repetition.");
+    wins.draw++;
+  } else if (result.type === "draw-fifty-move") {
+    setStatus("Draw by 50-move rule.");
+    wins.draw++;
   } else {
     setStatus("Stalemate — Draw!");
     wins.draw++;
@@ -918,6 +954,9 @@ function startGame() {
   state.halfMove        = 0;
   state.moveNumber      = 1;
   state.history         = [];
+  state.positionHistory = [
+    getPositionKey(state.board, state.turn, state.castling, state.enPassant)
+  ];
   state.lastMove        = null;
   state.capturedByWhite = [];
   state.capturedByBlack = [];
