@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chess AI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../styles.css" />
+  <link rel="stylesheet" href="chess.css" />
+</head>
+<body>
+
+<div class="project-card">
+
+  <!-- ===================== LEFT: DEMO ===================== -->
+  <div class="demo-area">
+
+    <div class="demo-header">
+      <div class="demo-dot green"></div>
+      <div class="demo-dot"></div>
+      <div class="demo-dot"></div>
+      <span class="demo-title-bar">chess.js — alpha-beta engine</span>
+    </div>
+
+    <!-- Mode + inner tabs -->
+    <div class="chess-toolbar">
+      <div class="mode-group">
+        <button class="btn-ghost active" id="btnHvB">Human vs Bot</button>
+        <button class="btn-ghost" id="btnBvB">Bot vs Bot</button>
+      </div>
+      <div class="inner-tabs">
+        <button class="inner-tab active" data-itab="board">Board</button>
+        <button class="inner-tab" data-itab="weights">Weights</button>
+      </div>
+    </div>
+
+    <!-- Board panel -->
+    <div class="inner-panel active" id="panel-board">
+
+      <!-- Colour picker — shown before each HvB game, hidden in BvB -->
+      <div id="colourPicker" class="colour-picker">
+        <div class="colour-picker-title">Choose your colour</div>
+        <div class="colour-picker-btns">
+          <button class="colour-btn" id="btnPlayWhite">
+            <span class="colour-piece">&#9812;</span>
+            <span>White</span>
+            <span class="colour-sub">Move first</span>
+          </button>
+          <button class="colour-btn" id="btnPlayBlack">
+            <span class="colour-piece">&#9818;</span>
+            <span>Black</span>
+            <span class="colour-sub">Bot moves first</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="board-area" id="boardArea" style="display:none;">
+        <div class="board-wrap">
+          <div id="chessBoard" class="chess-board"></div>
+        </div>
+        <div class="board-side">
+          <div class="captured-section">
+            <div class="cap-label">Black captured</div>
+            <div id="capBlack" class="captured-row"></div>
+          </div>
+          <div class="captured-section">
+            <div class="cap-label">White captured</div>
+            <div id="capWhite" class="captured-row"></div>
+          </div>
+          <div class="status-box" id="statusBox">Ready</div>
+          <div class="win-tracker">
+            <div class="win-row">
+              <span class="win-label">White wins</span>
+              <span class="win-val" id="winsWhite">0</span>
+            </div>
+            <div class="win-row">
+              <span class="win-label">Black wins</span>
+              <span class="win-val" id="winsBlack">0</span>
+            </div>
+            <div class="win-row">
+              <span class="win-label">Draws</span>
+              <span class="win-val" id="winsDraw">0</span>
+            </div>
+          </div>
+        </div>
+      </div><!-- /board-area -->
+    </div><!-- /panel-board -->
+
+    <!-- Weights panel -->
+    <div class="inner-panel" id="panel-weights">
+      <div class="weights-panel">
+        <div class="weights-header">
+          <span class="section-header">// Piece Values</span>
+          <button class="btn-ghost" id="btnResetWeights">Reset Defaults</button>
+        </div>
+        <div id="pieceValueGrid" class="piece-value-grid"></div>
+        <div class="weights-header" style="margin-top:1rem;">
+          <span class="section-header">// Piece-Square Tables</span>
+          <select id="pstSelect" class="pst-select"></select>
+        </div>
+        <div id="pstGrid" class="pst-grid"></div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <button class="btn-primary" id="btnNewGame">New Game</button>
+      <button class="btn-danger"  id="btnUndo">Undo</button>
+      <div class="speed-group">
+        <span class="speed-label">speed:</span>
+        <button class="btn-ghost active" data-speed="500">1x</button>
+        <button class="btn-ghost" data-speed="100">4x</button>
+        <button class="btn-ghost" data-speed="0">Max</button>
+      </div>
+      <div class="depth-group">
+        <span class="speed-label">depth:</span>
+        <input id="depthInput" class="pop-input" type="number" value="3" min="1" max="6" />
+      </div>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat"><span class="stat-label">Turn</span><span class="stat-value" id="statTurn">White</span></div>
+      <div class="stat"><span class="stat-label">Move #</span><span class="stat-value" id="statMove">0</span></div>
+      <div class="stat"><span class="stat-label">Nodes</span><span class="stat-value" id="statNodes">—</span></div>
+      <div class="stat"><span class="stat-label">Depth</span><span class="stat-value" id="statDepth">—</span></div>
+      <div class="stat"><span class="stat-label">Eval</span><span class="stat-value" id="statEval">—</span></div>
+    </div>
+
+  </div><!-- /demo-area -->
+
+  <!-- ===================== RIGHT: INFO ===================== -->
+  <div class="info-panel">
+    <div>
+      <div class="project-number">PROJECT_02</div>
+      <div class="project-name">Chess<br /><span>Alpha-Beta AI</span></div>
+    </div>
+
+    <p class="project-desc">
+      A chess engine built from scratch using Alpha-Beta pruning with
+      iterative deepening. Choose to play as White or Black, or watch
+      two bots compete. Weights and win records persist across sessions.
+    </p>
+
+    <div class="params-section">
+      <h3>// Optimizations</h3>
+      <div class="param-row"><span class="param-name">Alpha-Beta Pruning</span></div>
+      <div class="param-row"><span class="param-name">Iterative Deepening</span></div>
+      <div class="param-row"><span class="param-name">Move Ordering</span></div>
+      <div class="param-row"><span class="param-name">Transposition Table</span></div>
+      <div class="param-row"><span class="param-name">Quiescence Search</span></div>
+      <div class="param-row"><span class="param-name">Piece-Square Tables</span></div>
+      <div class="param-row"><span class="param-name">Null Move Pruning</span></div>
+    </div>
+
+    <div class="meta-section">
+      <h3>// Project Snapshot</h3>
+
+      <div class="meta-group">
+        <div class="meta-label">Language</div>
+        <div class="meta-tags">
+          <span class="skill-tag highlight">JavaScript</span>
+        </div>
+      </div>
+
+      <div class="meta-group">
+        <div class="meta-label">Concepts</div>
+        <div class="meta-tags">
+          <span class="skill-tag">Alpha-Beta Pruning</span>
+          <span class="skill-tag">Game Tree Search</span>
+        </div>
+      </div>
+
+      <div class="meta-group">
+        <div class="meta-label">Engine Focus</div>
+        <div class="meta-tags">
+          <span class="skill-tag">Move Ordering</span>
+          <span class="skill-tag">Transposition Table</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /project-card -->
+
+<script src="chess.js"></script>
+<script>
+  // Keep iframe height synced after load and viewport changes.
+  document.addEventListener("DOMContentLoaded", () => reportEmbedHeight());
+  window.addEventListener("load", () => {
+    reportEmbedHeight();
+    setTimeout(reportEmbedHeight, 120);
+  });
+  window.addEventListener("resize", () => requestAnimationFrame(reportEmbedHeight));
+</script>
+</body>
+</html>

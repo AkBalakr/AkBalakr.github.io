@@ -1,0 +1,375 @@
+/* =========================================================
+   chess.css — Chess project specific styles
+   Inherits all base styles from styles.css
+========================================================= */
+
+/* =========================================================
+   TOOLBAR (mode buttons + inner tabs)
+========================================================= */
+.chess-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  gap: 1rem;
+}
+
+.mode-group {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.inner-tabs {
+  display: flex;
+  gap: 0;
+}
+
+.inner-tab {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 0.35rem 0.85rem;
+  transition: all 0.15s;
+}
+.inner-tab:first-child { border-radius: var(--radius) 0 0 var(--radius); }
+.inner-tab:last-child  { border-radius: 0 var(--radius) var(--radius) 0; border-left: none; }
+.inner-tab.active      { background: var(--border); color: var(--text); }
+.inner-tab:hover:not(.active) { color: var(--text); }
+
+/* =========================================================
+   INNER PANELS (Board / Weights)
+========================================================= */
+.inner-panel {
+  display: none;
+  flex: 1;
+  overflow: visible;
+  min-height: 0;
+}
+.inner-panel.active { display: flex; flex-direction: column; }
+
+/* =========================================================
+   BOARD AREA
+========================================================= */
+.board-area {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  flex: 1;
+  min-height: 0;
+  align-items: flex-start;
+}
+
+.board-wrap {
+  flex-shrink: 0;
+}
+
+.chess-board {
+  display: grid;
+  grid-template-columns: repeat(8, 52px);
+  grid-template-rows: repeat(8, 52px);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  user-select: none;
+}
+
+.chess-cell {
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.1s;
+}
+
+/* Light and dark squares */
+.chess-cell.light { background: var(--chess-square-light); }
+.chess-cell.dark  { background: var(--chess-square-dark); }
+
+/* Highlighted states */
+.chess-cell.selected   { background: var(--chess-square-selected) !important; }
+.chess-cell.legal-move { background: var(--chess-square-legal) !important; }
+.chess-cell.last-move  { background: var(--chess-square-last) !important; }
+.chess-cell.in-check   { background: var(--chess-square-check) !important; }
+
+/* Dot overlay for legal moves on empty squares */
+.chess-cell.legal-move::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--chess-legal-dot);
+}
+
+/* Rank/file coordinate labels */
+.chess-cell .coord {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  font-weight: 700;
+  opacity: 0.6;
+  pointer-events: none;
+}
+.chess-cell .coord-rank { bottom: 2px; right: 4px; }
+.chess-cell .coord-file { top: 2px; left: 4px; }
+
+/* =========================================================
+   BOARD SIDE PANEL (captures, status, win tracker)
+========================================================= */
+.board-side {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 130px;
+}
+
+.captured-section { display: flex; flex-direction: column; gap: 0.3rem; }
+
+.cap-label {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.captured-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1px;
+  font-size: 1.1rem;
+  min-height: 1.4rem;
+}
+
+.status-box {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--accent);
+  padding: 0.5rem 0.75rem;
+  background: var(--inset);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-height: 2.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.win-tracker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.win-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.win-label {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--muted);
+}
+
+.win-val {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* =========================================================
+   WEIGHTS PANEL
+========================================================= */
+.weights-panel {
+  padding: 1rem 1.25rem;
+  overflow: visible;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.weights-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Piece value row grid */
+.piece-value-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.pv-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  background: var(--inset);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.4rem 0.6rem;
+  min-width: 60px;
+}
+
+.pv-symbol {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.pv-name {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.pv-input {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  width: 54px;
+  text-align: center;
+  padding: 0.1rem 0;
+}
+.pv-input:focus { outline: none; border-bottom-color: var(--accent); }
+
+/* PST piece selector */
+.pst-select {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  background: var(--inset);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0.3rem 0.5rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.pst-select:focus { outline: none; border-color: var(--accent); }
+
+/* 8x8 PST grid */
+.pst-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 2px;
+}
+
+.pst-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.pst-input {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 700;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: center;
+  color: var(--text);
+}
+.pst-input:focus { outline: none; }
+
+/* =========================================================
+   MISC
+========================================================= */
+.depth-group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.pop-input {
+  width: 48px;
+}
+
+/* =========================================================
+   COLOUR PICKER OVERLAY
+   Shown before each Human vs Bot game so the player can
+   choose to play White or Black.
+========================================================= */
+.colour-picker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 2.5rem 1rem;
+  flex: 1;
+}
+
+.colour-picker-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.colour-picker-btns {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.colour-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 1.5rem 2rem;
+  background: var(--inset);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  min-width: 110px;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.colour-btn:hover {
+  border-color: var(--accent);
+  background: var(--chess-picker-hover);
+  opacity: 1;
+}
+
+.colour-piece {
+  font-size: 2.8rem;
+  line-height: 1;
+  display: block;
+}
+
+.colour-sub {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--muted);
+  font-weight: 400;
+}

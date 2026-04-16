@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flappy Bird + Genetic AI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../styles.css" />
+  <link rel="stylesheet" href="flappy.css" />
+</head>
+<body>
+
+  <div class="project-card">
+
+    <!-- ===================== LEFT: DEMO ===================== -->
+    <div class="demo-area">
+
+      <!-- Fake window chrome -->
+      <div class="demo-header">
+        <div class="demo-dot green"></div>
+        <div class="demo-dot"></div>
+        <div class="demo-dot"></div>
+        <span class="demo-title-bar">flappy.js — live simulation</span>
+      </div>
+
+      <!-- Canvas -->
+      <div class="canvas-wrapper">
+        <canvas id="gameCanvas" width="480" height="340"></canvas>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-bar">
+        <div class="stat">
+          <span class="stat-label">Generation</span>
+          <span class="stat-value" id="statGen">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Alive</span>
+          <span class="stat-value" id="statAlive">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Best Fitness</span>
+          <span class="stat-value" id="statBest">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Pipes Passed</span>
+          <span class="stat-value" id="statPipes">—</span>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="controls">
+        <button class="btn-primary" id="btnStart">&#9654; START</button>
+        <button class="btn-danger" id="btnReset">&#8635; RESET</button>
+        <div class="pop-group">
+          <label class="pop-label" for="popSize">pop:</label>
+          <input id="popSize" class="pop-input" type="number" value="5" min="1" max="50" />
+        </div>
+        <div class="speed-group">
+          <span class="speed-label">speed:</span>
+          <button class="btn-ghost active" data-speed="1">1x</button>
+          <button class="btn-ghost" data-speed="4">4x</button>
+          <button class="btn-ghost" data-speed="8">8x</button>
+        </div>
+      </div>
+
+    </div><!-- /demo-area -->
+
+    <!-- ===================== RIGHT: INFO ===================== -->
+    <div class="info-panel">
+
+      <div>
+        <div class="project-number">PROJECT_01</div>
+        <div class="project-name">Flappy Bird<br /><span>+ Genetic AI</span></div>
+      </div>
+
+      <p class="project-desc">
+        A population of birds learns to play Flappy Bird using a genetic algorithm.
+        Each bird has a tiny neural network for its brain — it looks at three distances
+        and decides whether to flap. Bad birds die; good birds breed. Watch the
+        population evolve over generations entirely on its own.
+      </p>
+
+      <!-- Live neural input readouts -->
+      <div class="params-section">
+        <h3>// Neural Inputs (best bird)</h3>
+        <div class="param-row">
+          <div class="param-dot param-dot-distance"></div>
+          <span class="param-name">Distance to Pipe</span>
+          <span class="param-val param-val-distance" id="p1">—</span>
+        </div>
+        <div class="param-row">
+          <div class="param-dot param-dot-top"></div>
+          <span class="param-name">Gap from Top</span>
+          <span class="param-val param-val-top" id="p2">—</span>
+        </div>
+        <div class="param-row">
+          <div class="param-dot param-dot-bottom"></div>
+          <span class="param-name">Gap from Bottom</span>
+          <span class="param-val param-val-bottom" id="p3">—</span>
+        </div>
+      </div>
+
+      <div class="meta-section">
+        <h3>// Project Snapshot</h3>
+
+        <div class="meta-group">
+          <div class="meta-label">Language</div>
+          <div class="meta-tags">
+            <span class="skill-tag highlight">JavaScript</span>
+          </div>
+        </div>
+
+        <div class="meta-group">
+          <div class="meta-label">Concepts</div>
+          <div class="meta-tags">
+            <span class="skill-tag">Genetic Algorithms</span>
+            <span class="skill-tag">Neural Networks</span>
+          </div>
+        </div>
+
+        <div class="meta-group">
+          <div class="meta-label">Platform</div>
+          <div class="meta-tags">
+            <span class="skill-tag">HTML5 Canvas</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /info-panel -->
+  </div><!-- /project-card -->
+
+
+  <script>
+    // Tell the parent page how tall this card is so the iframe
+    // can resize itself to fit without any fixed pixel height.
+    function getEmbedHeight() {
+      const card = document.querySelector(".project-card");
+      if (card) return Math.ceil(card.getBoundingClientRect().height);
+      const root = document.documentElement;
+      const body = document.body;
+      return Math.ceil(Math.max(
+        root ? root.scrollHeight : 0,
+        body ? body.scrollHeight : 0
+      ));
+    }
+
+    function reportHeight() {
+      if (window.self !== window.top) {
+        document.documentElement.style.overflowY = "hidden";
+        document.body.style.overflowY = "hidden";
+      }
+
+      const height = getEmbedHeight();
+      window.parent.postMessage({ type: "resize", height }, "*");
+    }
+
+    // Report once the layout is ready, then again after fonts/images load
+    document.addEventListener("DOMContentLoaded", reportHeight);
+    window.addEventListener("load", reportHeight);
+    window.addEventListener("load", () => setTimeout(reportHeight, 120));
+
+    // Also report if the window itself is resized
+    window.addEventListener("resize", () => requestAnimationFrame(reportHeight));
+  </script>
+  <script src="flappy.js"></script>
+</body>
+</html>

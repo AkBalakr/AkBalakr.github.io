@@ -1,0 +1,147 @@
+/* =========================================================
+   flappy.css
+   ----------
+   Flappy Bird project — specific styles only.
+   All shared styles (variables, card layout, buttons, info
+   panel, skill tags, etc.) come from styles.css which is
+   loaded first in flappy.html.
+========================================================= */
+
+:root {
+  --flappy-sensor-distance: #51291e;
+  --flappy-sensor-top: #79b791;
+  --flappy-sensor-bottom: #301014;
+}
+
+
+/* =========================================================
+   CANVAS WRAPPER
+   Fixed height so the 480x340 canvas has a stable container.
+   This is flappy-specific because other projects may have
+   different demo area content (e.g. a chart, a 3D scene).
+========================================================= */
+.canvas-wrapper {
+  height: 360px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--inset);
+  padding: 1rem;
+}
+
+canvas {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+
+/* =========================================================
+   POPULATION SIZE INPUT GROUP
+   Inline label + number input inside the controls bar.
+   Width is fixed to fit a 1-2 digit number neatly.
+========================================================= */
+.pop-group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.pop-input {
+  width: 54px;
+}
+
+.pop-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--muted);
+}
+
+
+/* =========================================================
+   SPEED BUTTON GROUP
+   1x / 4x / 8x fast-forward toggle buttons.
+   Pushed to the right of the controls bar with margin-left auto.
+========================================================= */
+.speed-group {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.speed-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--muted);
+}
+
+
+/* =========================================================
+   NEURAL INPUT READOUTS
+   The three colour-coded sensor value rows shown in the
+   info panel while the simulation is running.
+========================================================= */
+.params-section h3 {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.param-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border-2);
+}
+
+/* Colour dot matching the sensor line drawn on the canvas */
+.param-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.param-dot-distance { background: var(--flappy-sensor-distance); }
+.param-dot-top { background: var(--flappy-sensor-top); }
+.param-dot-bottom { background: var(--flappy-sensor-bottom); }
+
+.param-name {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text);
+  flex: 1;
+}
+
+/* Live numeric value — colour set inline to match the sensor */
+.param-val {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  min-width: 50px;
+  text-align: right;
+}
+
+.param-val-distance { color: var(--flappy-sensor-distance); }
+.param-val-top { color: var(--flappy-sensor-top); }
+.param-val-bottom { color: var(--flappy-sensor-bottom); }
+
+
+/* =========================================================
+   SKILLS SECTION HEADER
+========================================================= */
+.skills-section h3 {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}

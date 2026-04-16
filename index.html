@@ -1,75 +1,213 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Akash Balakrishnan</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-    <link rel="preload" as="image" href="AK1.webp" type="image/webp">
-    <meta name="description" content="Akash Balakrishnan - Software developer portfolio. Projects in AI, full-stack, and systems programming.">
-    <meta property="og:title" content="Akash Balakrishnan">
-    <meta property="og:description" content="Explore my projects and experience">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://akashbalakrish.com/">
-    <link rel="icon" href="AK1.webp" type="image/webp">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Akash Balakrishnan - Portfolio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-
-    
+        <link rel="stylesheet" href="index.css" />
 </head>
 <body>
-    <div id="header-placeholder"></div>
-    <script>
-      fetch('components/header.html')
-        .then(response => response.text())
-        .then(data => {
-        document.getElementById('header-placeholder').innerHTML = data;
-        // Mobile menu toggle
-        const toggle = document.querySelector('.menu-toggle');
-        const nav = document.getElementById('primary-nav');
-        if (toggle && nav) {
-          toggle.addEventListener('click', (e) => {
-            const isOpen = nav.classList.toggle('open');
-            toggle.setAttribute('aria-expanded', String(isOpen));
-            toggle.setAttribute('aria-label', isOpen ? 'Close menu' : 'Open menu');
-            e.stopPropagation();
-          });
-          document.addEventListener('click', (e) => {
-            if (!nav.contains(e.target) && e.target !== toggle && nav.classList.contains('open')) {
-              nav.classList.remove('open');
-              toggle.setAttribute('aria-expanded', 'false');
-              toggle.setAttribute('aria-label', 'Open menu');
-            }
-          });
-        }
-        });
-    </script>
- 
-    
-    <section class="hero">
-        <div class="hero-text">
-            <h1>I am Akash Balakrishnan <br> </h1>
-            <!--<p>click Resume </p>-->
-            <a href="https://linkedin.com/in/akash-balakrishnan" target="_blank" class="linkedin-link" aria-label="LinkedIn">
-                <i class="fab fa-linkedin"></i>
-            </a>
-            <div class="resume">
-            <a href="Akash_Resume.pdf" target="_blank" class="resume-button">View My Resume</a>
+
+    <!-- ===================== STICKY NAV ===================== -->
+    <nav class="site-nav">
+        <a href="#top" class="nav-logo">Akash<span>Balakrishnan</span></a>
+        <ul class="nav-links">
+            <li><a href="#top"      class="active" data-section="top">About</a></li>
+            <li><a href="#projects" data-section="projects">Projects</a></li>
+        </ul>
+    </nav>
+
+    <!-- ===================== PROFILE HERO ===================== -->
+    <section id="top" class="profile-section">
+
+        <!-- Left: name, bio, contact -->
+        <div class="profile-left">
+            <div class="profile-eyebrow">Curated Portfolio</div>
+
+            <h1 class="profile-name">
+                Akash<br /><span>Balakrishnan</span>
+            </h1>
+
+            <div class="profile-title">
+                Software Engineer &nbsp;&middot;&nbsp; AI / ML &nbsp;&middot;&nbsp; Full-Stack Systems
             </div>
-          <!-- Add Resume Download Section -->
-         
-         <!-- <embed src="Akash_Resume.pdf" type="application/pdf">
-         <div class="resume">
-           <a href="Akash_Resume.pdf" download>
-                <i class="fas fa-file-pdf"></i> Download My Resume
-            </a> 
-        </div>-->
-        
-        
-    </div>
-    
-    <img class="hero-image" src="AK1.webp" alt="Portrait of Akash Balakrishnan" width="400" height="400" loading="eager" fetchpriority="high">
+
+            <p class="profile-bio">
+                I build software across web applications, machine learning, and
+                systems-level programming, with a focus on clarity and practical
+                impact. This portfolio highlights interactive projects I designed
+                and implemented end-to-end, from AI-driven simulations to
+                algorithmic engines and cryptography tooling.
+            </p>
+
+            <div class="contact-links">
+                <a href="CVAI_Resume_260327.pdf" class="contact-link primary" target="_blank">&#9998; View Resume</a>
+                <a href="https://github.com/AkBalakr" class="contact-link ghost" target="_blank">&#128279; GitHub</a>
+                <a href="https://linkedin.com/in/akash-balakrishnan" class="contact-link ghost" target="_blank">&#128279; LinkedIn</a>
+                <a href="#projects"              class="contact-link ghost">&#8595; See Projects</a>
+            </div>
+        </div>
+
+        <!-- Right: experience -->
+        <div class="profile-right">
+
+            <!-- Experience card -->
+            <div class="experience-wrap">
+                <div class="profile-card">
+                    <div class="profile-card-header">Experience</div>
+                    <div class="profile-card-body">
+                        <div class="experience-list">
+
+                            <div class="exp-item">
+                                <div class="exp-timeline">
+                                    <div class="exp-dot"></div>
+                                    <div class="exp-line"></div>
+                                </div>
+                                <div class="exp-content">
+                                    <div class="exp-date">2024 - Present</div>
+                                    <div class="exp-role">Software Engineer</div>
+                                    <div class="exp-company">Independent Project Portfolio</div>
+                                    <div class="exp-desc">Built interactive AI and algorithm demos including a genetic Flappy Bird simulator, an alpha-beta chess engine, and an RSA cryptography workflow from scratch.</div>
+                                </div>
+                            </div>
+
+                            <div class="exp-item">
+                                <div class="exp-timeline">
+                                    <div class="exp-dot"></div>
+                                    <div class="exp-line"></div>
+                                </div>
+                                <div class="exp-content">
+                                    <div class="exp-date">2022 - 2024</div>
+                                    <div class="exp-role">Full-Stack Developer</div>
+                                    <div class="exp-company">Anime AI Web Application</div>
+                                    <div class="exp-desc">Developed a recommendation-focused web platform combining backend data workflows with user-facing interfaces for personalized anime discovery.</div>
+                                </div>
+                            </div>
+
+                            <div class="exp-item">
+                                <div class="exp-timeline">
+                                    <div class="exp-dot"></div>
+                                    <div class="exp-line"></div>
+                                </div>
+                                <div class="exp-content">
+                                    <div class="exp-date">2018 - 2022</div>
+                                    <div class="exp-role">B.S. Computer Science</div>
+                                    <div class="exp-company">Computer Science Training</div>
+                                    <div class="exp-desc">Built a strong foundation in data structures, algorithms, systems programming, and software engineering through intensive project work.</div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
     </section>
+
+    <!-- ===================== PROJECTS DIVIDER ===================== -->
+    <div id="projects" class="section-divider">
+        <span class="section-divider-label">Interactive Projects</span>
+        <div class="section-divider-line"></div>
+    </div>
+
+    <!-- ===================== TAB NAV ===================== -->
+    <nav class="tab-nav">
+        <button class="tab-btn active" data-tab="projects">Gallery</button>
+    </nav>
+
+    <!-- ===================== PROJECTS TAB ===================== -->
+    <section class="tab-panel active" id="tab-projects">
+        <div>
+            <div class="section-label">Project Card 1</div>
+            <iframe
+                class="project-frame"
+                src="projects/chess/chess.html"
+                title="Chess Alpha-Beta AI"
+            ></iframe>
+        </div>
+        
+        <div>
+            <div class="section-label">Project Card 2</div>
+            <iframe
+                class="project-frame"
+                src="projects/flappy-bird/flappy.html"
+                title="Flappy Bird + Genetic AI"
+            ></iframe>
+        </div>
+
+        <div>
+            <div class="section-label">Project Card 3</div>
+            <iframe
+                class="project-frame"
+                src="projects/rsa/rsa.html?v=20260414"
+                title="RSA Cryptography"
+            ></iframe>
+        </div>
+    </section>
+
+    <script>
+    "use strict";
+
+    // ================================================================
+    // === STICKY NAV ACTIVE LINK
+    // Highlights "About" when near the top, "Projects" when scrolled down
+    // ================================================================
+    const navLinks = document.querySelectorAll(".nav-links a");
+
+    function updateNavActive() {
+        const projectsTop = document.getElementById("projects").getBoundingClientRect().top;
+        const atProjects  = projectsTop <= 80;
+        navLinks.forEach(a => {
+            a.classList.toggle("active", atProjects
+                ? a.dataset.section === "projects"
+                : a.dataset.section === "top"
+            );
+        });
+    }
+
+    window.addEventListener("scroll", updateNavActive, { passive: true });
+
+    // ================================================================
+    // === TABS
+    // ================================================================
+    const tabBtns   = document.querySelectorAll(".tab-btn");
+    const tabPanels = document.querySelectorAll(".tab-panel");
+
+    tabBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            tabBtns.forEach(b => b.classList.remove("active"));
+            tabPanels.forEach(p => p.classList.remove("active"));
+            btn.classList.add("active");
+            document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+        });
+    });
+
+    // ================================================================
+    // === IFRAME RESIZE
+    // ================================================================
+    window.addEventListener("message", (event) => {
+        if (event.data && event.data.type === "resize") {
+            const nextHeight = Math.ceil(Number(event.data.height));
+            if (!Number.isFinite(nextHeight) || nextHeight <= 0) return;
+
+            document.querySelectorAll(".project-frame").forEach(frame => {
+                try {
+                    if (frame.contentWindow === event.source) {
+                        const currentHeight = parseFloat(frame.style.height) || 0;
+                        if (Math.abs(currentHeight - nextHeight) >= 1)
+                            frame.style.height = nextHeight + "px";
+                    }
+                } catch {}
+            });
+        }
+    });
+
+    </script>
+
 </body>
 </html>
+
 

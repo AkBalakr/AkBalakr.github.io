@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RSA Cryptography</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../styles.css" />
+  <link rel="stylesheet" href="rsa.css" />
+</head>
+<body>
+
+<div class="project-card">
+
+  <!-- ===================== LEFT: DEMO ===================== -->
+  <div class="demo-area">
+
+    <div class="demo-header">
+      <div class="demo-dot green"></div>
+      <div class="demo-dot"></div>
+      <div class="demo-dot"></div>
+      <span class="demo-title-bar">rsa.c — public key cryptography</span>
+    </div>
+
+    <!-- Inner tab bar -->
+    <div class="rsa-toolbar">
+      <button class="inner-tab active" data-itab="crypto">Encrypt / Decrypt</button>
+      <button class="inner-tab"        data-itab="math">How It Works</button>
+      <button class="inner-tab"        data-itab="keys">Keys</button>
+    </div>
+
+    <!-- ============ PANEL: Crypto ============ -->
+    <div class="inner-panel active" id="panel-crypto">
+
+      <div class="crypto-grid">
+
+        <!-- Plaintext input -->
+        <div class="crypto-box">
+          <div class="crypto-label">
+            Plaintext
+            <button class="copy-btn" onclick="copyText('plaintext')">copy</button>
+          </div>
+          <textarea id="plaintext" class="crypto-textarea" placeholder="Type a message to encrypt..."></textarea>
+        </div>
+
+        <!-- Action buttons row -->
+        <div class="crypto-actions">
+          <button class="btn-primary" id="btnEncrypt">&#9650; Encrypt</button>
+          <button class="btn-danger"  id="btnGenKeys">&#9881; New Keys</button>
+          <button class="btn-primary" id="btnDecrypt">&#9660; Decrypt</button>
+        </div>
+
+        <!-- Ciphertext output -->
+        <div class="crypto-box">
+          <div class="crypto-label">
+            Ciphertext (hex)
+            <button class="copy-btn" onclick="copyText('ciphertext')">copy</button>
+          </div>
+          <textarea id="ciphertext" class="crypto-textarea output" placeholder="Encrypted output appears here..." readonly></textarea>
+        </div>
+
+      </div>
+
+      <!-- Step log -->
+      <div class="crypto-label">Operation Log</div>
+      <div class="step-log" id="stepLog">
+        <span class="step-line">// Ready — generate keys then encrypt or decrypt</span>
+      </div>
+
+      <div class="rsa-status" id="rsaStatus"></div>
+
+    </div><!-- /panel-crypto -->
+
+    <!-- ============ PANEL: Math ============ -->
+    <div class="inner-panel" id="panel-math">
+      <div class="math-section">
+
+        <div class="math-block">
+          <div class="math-block-header">// 1. Key Generation</div>
+          <div class="math-block-body">
+            Choose two large random prime numbers <strong>p</strong> and <strong>q</strong>.
+            Compute the public modulus:
+            <code class="math-formula">n = p × q</code>
+            Compute Carmichael's totient using LCM instead of Euler's φ:
+            <code class="math-formula">λ(n) = lcm(p−1, q−1)</code>
+            Choose public exponent <strong>e = 65537</strong> (standard — prime, fast in binary).
+            Compute private key <strong>d</strong> as the modular inverse of e:
+            <code class="math-formula">d × e ≡ 1 (mod λ(n))</code>
+            <span class="math-note">▸ Public key is (n, e). Private key is (n, d). p and q are discarded.</span>
+          </div>
+        </div>
+
+        <div class="math-block">
+          <div class="math-block-header">// 2. Encryption</div>
+          <div class="math-block-body">
+            Convert plaintext to integer blocks <strong>m</strong>.
+            Each block is prepended with <code>0xFF</code> to prevent leading zero issues.
+            Block size is <strong>k = ⌊(log₂(n) − 1) / 8⌋</strong> bytes.
+            <code class="math-formula">c = m^e mod n</code>
+            The result <strong>c</strong> is the ciphertext — a large number written as hex.
+            <span class="math-note">▸ Anyone with the public key (n, e) can encrypt. Only the holder of d can decrypt.</span>
+          </div>
+        </div>
+
+        <div class="math-block">
+          <div class="math-block-header">// 3. Decryption</div>
+          <div class="math-block-body">
+            Read each hex line of ciphertext as integer <strong>c</strong>.
+            Apply the private key exponent <strong>d</strong>:
+            <code class="math-formula">m = c^d mod n</code>
+            This works because:
+            <code class="math-formula">m^(e×d) ≡ m (mod n)</code>
+            Strip the prepended <code>0xFF</code> byte, write remaining bytes to output.
+            <span class="math-note">▸ This identity holds by Euler's theorem when gcd(m, n) = 1.</span>
+          </div>
+        </div>
+
+        <div class="math-block">
+          <div class="math-block-header">// 4. Signatures</div>
+          <div class="math-block-body">
+            To sign a message <strong>m</strong> (e.g. the username), the key holder uses their private key:
+            <code class="math-formula">s = m^d mod n</code>
+            Anyone can verify the signature using the public key:
+            <code class="math-formula">s^e mod n == m  ?</code>
+            This proves the message came from the holder of <strong>d</strong> without revealing d.
+            <span class="math-note">▸ Used in this program to authenticate the username embedded in the public key file.</span>
+          </div>
+        </div>
+
+        <div class="math-block">
+          <div class="math-block-header">// 5. Miller-Rabin Primality Test</div>
+          <div class="math-block-body">
+            To find large primes, candidate numbers are tested probabilistically.
+            Write <strong>n−1 = 2<sup>s</sup> × r</strong> where r is odd. Then for random <strong>a</strong>:
+            <code class="math-formula">y = a^r mod n</code>
+            If y ≠ 1 and y ≠ n−1, repeatedly square y up to s−1 times.
+            If we never reach n−1, <strong>n is composite</strong>.
+            <span class="math-note">▸ Running 50 iterations gives error probability &lt; 4⁻⁵⁰ ≈ 10⁻³⁰.</span>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /panel-math -->
+
+    <!-- ============ PANEL: Keys ============ -->
+    <div class="inner-panel" id="panel-keys">
+
+      <div class="keys-section">
+
+        <div class="key-row">
+          <div class="key-row-header">
+            <span class="key-name">n</span>
+            <span class="key-desc">Public Modulus (n = p × q)</span>
+            <span class="key-bits" id="bits-n">— bits</span>
+          </div>
+          <div class="key-value" id="val-n">Generate keys to populate</div>
+        </div>
+
+        <div class="key-row">
+          <div class="key-row-header">
+            <span class="key-name">e</span>
+            <span class="key-desc">Public Exponent</span>
+            <span class="key-bits" id="bits-e">— bits</span>
+          </div>
+          <div class="key-value" id="val-e">—</div>
+        </div>
+
+        <div class="key-row">
+          <div class="key-row-header">
+            <span class="key-name">d</span>
+            <span class="key-desc">Private Key (de ≡ 1 mod λ(n))</span>
+            <span class="key-bits" id="bits-d">— bits</span>
+          </div>
+          <div class="key-value" id="val-d">—</div>
+        </div>
+
+        <div class="key-row">
+          <div class="key-row-header">
+            <span class="key-name">p</span>
+            <span class="key-desc">First Prime</span>
+            <span class="key-bits" id="bits-p">— bits</span>
+          </div>
+          <div class="key-value" id="val-p">—</div>
+        </div>
+
+        <div class="key-row">
+          <div class="key-row-header">
+            <span class="key-name">q</span>
+            <span class="key-desc">Second Prime</span>
+            <span class="key-bits" id="bits-q">— bits</span>
+          </div>
+          <div class="key-value" id="val-q">—</div>
+        </div>
+
+        <div class="key-row">
+          <div class="key-row-header">
+            <span class="key-name">s</span>
+            <span class="key-desc">Username Signature</span>
+            <span class="key-bits" id="bits-s">— bits</span>
+          </div>
+          <div class="key-value" id="val-s">—</div>
+        </div>
+
+      </div>
+
+      <!-- Raw key files -->
+      <div style="display:flex; flex-direction:column; gap:0.75rem; margin-top:0.5rem;">
+        <div class="key-file-box">
+          <div class="key-file-label">rsa.pub (public key file)</div>
+          <textarea id="pubKeyArea" class="key-file-area" placeholder="Generate keys to see public key..."></textarea>
+        </div>
+        <div class="key-file-box">
+          <div class="key-file-label">rsa.priv (private key file)</div>
+          <textarea id="privKeyArea" class="key-file-area" placeholder="Generate keys to see private key..."></textarea>
+        </div>
+      </div>
+
+    </div><!-- /panel-keys -->
+
+    <!-- Controls bar -->
+    <div class="controls">
+      <div class="depth-group">
+        <span class="speed-label">bits:</span>
+        <input id="bitsInput" class="pop-input" type="number" value="128" min="64" max="512" step="64" />
+      </div>
+      <div class="depth-group">
+        <span class="speed-label">iters:</span>
+        <input id="itersInput" class="pop-input" type="number" value="50" min="10" max="200" />
+      </div>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="stats-bar">
+      <div class="stat"><span class="stat-label">Key Bits</span><span class="stat-value" id="statBits">—</span></div>
+      <div class="stat"><span class="stat-label">n (hex chars)</span><span class="stat-value" id="statNLen">—</span></div>
+      <div class="stat"><span class="stat-label">Block Size</span><span class="stat-value" id="statBlock">—</span></div>
+      <div class="stat"><span class="stat-label">Status</span><span class="stat-value" id="statStatus">Ready</span></div>
+    </div>
+
+  </div><!-- /demo-area -->
+
+  <!-- ===================== RIGHT: INFO ===================== -->
+  <div class="info-panel">
+    <div>
+      <div class="project-number">PROJECT_03</div>
+      <div class="project-name">RSA<br /><span>Cryptography</span></div>
+    </div>
+
+    <p class="project-desc">
+      A full RSA implementation in C — key generation, encryption, and
+      decryption built from scratch using GMP for arbitrary-precision
+      arithmetic. No standard crypto libraries used.
+    </p>
+
+    <div class="params-section">
+      <h3>// Components</h3>
+      <div class="param-row"><span class="param-name">Miller-Rabin Primality</span></div>
+      <div class="param-row"><span class="param-name">Modular Exponentiation</span></div>
+      <div class="param-row"><span class="param-name">Extended Euclidean GCD</span></div>
+      <div class="param-row"><span class="param-name">Carmichael's Totient</span></div>
+      <div class="param-row"><span class="param-name">Digital Signatures</span></div>
+      <div class="param-row"><span class="param-name">Block Encryption</span></div>
+    </div>
+
+    <div class="meta-section">
+      <h3>// Project Snapshot</h3>
+
+      <div class="meta-group">
+        <div class="meta-label">Language</div>
+        <div class="meta-tags">
+          <span class="skill-tag highlight">C</span>
+        </div>
+      </div>
+
+      <div class="meta-group">
+        <div class="meta-label">Concepts</div>
+        <div class="meta-tags">
+          <span class="skill-tag">Public-Key Cryptography</span>
+          <span class="skill-tag">Modular Arithmetic</span>
+        </div>
+      </div>
+
+      <div class="meta-group">
+        <div class="meta-label">Library</div>
+        <div class="meta-tags">
+          <span class="skill-tag">GMP</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /project-card -->
+
+<script src="rsa.js?v=20260414"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => reportEmbedHeight());
+  window.addEventListener("load", () => {
+    reportEmbedHeight();
+    setTimeout(reportEmbedHeight, 120);
+  });
+  window.addEventListener("resize", () => requestAnimationFrame(reportEmbedHeight));
+</script>
+</body>
+</html>
