@@ -576,28 +576,9 @@ function alphaBeta(board, depth, alpha, beta, color, castling, enPassant, nodesR
 // with no answer.
 // ================================================================
 
-const ROOT_RANDOM_WINDOW_CP = 12; // near-equal window at root (0.12 pawns)
-const ROOT_RANDOM_CHANCE = 0.30;  // only occasional randomness to keep strength
-const ROOT_RANDOM_POOL_SIZE = 3;  // only sample from the top few near-equal moves
-
-function pickNearEqualRootMove(scoredMoves, randomChance) {
-  if (scoredMoves.length === 0) return null;
-
-  scoredMoves.sort((a, b) => b.score - a.score);
-  const best = scoredMoves[0];
-  const nearEqual = scoredMoves.filter(entry => entry.score >= best.score - ROOT_RANDOM_WINDOW_CP);
-  const pool = nearEqual.slice(0, ROOT_RANDOM_POOL_SIZE);
-
-  if (pool.length > 1 && randomChance > 0 && Math.random() < randomChance) {
-    return pool[Math.floor(Math.random() * pool.length)];
-  }
-  return best;
-}
-
 function findBestMove(board, color, castling, enPassant, maxDepth) {
   transpositionTable.clear(); // fresh table each search
   const nodesRef = { count: 0 };
-  const randomChance = state.mode === "bvb" ? ROOT_RANDOM_CHANCE : 0;
 
   let bestMove = null;
   let bestScore = -Infinity;
@@ -608,21 +589,24 @@ function findBestMove(board, color, castling, enPassant, maxDepth) {
 
   // Iterative deepening: search increasing depths
   for (let depth = 1; depth <= maxDepth; depth++) {
+    let depthBest = null;
+    let depthScore = -Infinity;
     let alpha = -Infinity, beta = Infinity;
-    const scoredMoves = [];
 
     for (const move of sortMoves(board, moves)) {
       const { board: nb, newCastling, newEnPassant } = applyMoveToBoard(board, move, castling);
       const score = -alphaBeta(nb, depth - 1, -beta, -alpha, -color, newCastling, newEnPassant, nodesRef, true);
 
-      scoredMoves.push({ move, score });
+      if (score > depthScore) {
+        depthScore = score;
+        depthBest  = move;
+      }
       alpha = Math.max(alpha, score);
     }
 
-    const picked = pickNearEqualRootMove(scoredMoves, randomChance);
-    if (picked) {
-      bestMove  = picked.move;
-      bestScore = picked.score;
+    if (depthBest) {
+      bestMove  = depthBest;
+      bestScore = depthScore;
       actualDepth = depth;
     }
   }
