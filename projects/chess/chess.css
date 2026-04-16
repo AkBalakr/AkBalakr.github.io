@@ -213,6 +213,26 @@
 /* Piece value row grid */
 .piece-value-grid {
   display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pv-side-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.weights-side-label {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.pv-side-row {
+  display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
 }
@@ -268,8 +288,21 @@
 }
 .pst-select:focus { outline: none; border-color: var(--accent); }
 
-/* 8x8 PST grid */
-.pst-grid {
+/* PST split layout + 8x8 grids */
+.pst-grid-wrap {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.pst-side-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.pst-side-grid {
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   gap: 2px;
@@ -296,6 +329,12 @@
   color: var(--text);
 }
 .pst-input:focus { outline: none; }
+
+@media (max-width: 900px) {
+  .pst-grid-wrap {
+    grid-template-columns: 1fr;
+  }
+}
 
 /* =========================================================
    MISC

@@ -18,6 +18,8 @@ const WHITE = 1, BLACK = -1;
 const STORAGE = {
   pieceValues : "chess_piece_values",
   pst         : "chess_pst",
+  pieceValuesBlack : "chess_piece_values_black",
+  pstBlack         : "chess_pst_black",
   wins        : "chess_wins",
 };
 
@@ -106,6 +108,13 @@ const DEFAULT_PST = {
 // Piece values and PSTs persist across sessions via localStorage.
 // ================================================================
 
+function cloneWeightSet(src) {
+  return {
+    pieceValues : JSON.parse(JSON.stringify(src.pieceValues)),
+    pst         : JSON.parse(JSON.stringify(src.pst)),
+  };
+}
+
 function loadWeights() {
   try {
     const pv  = JSON.parse(localStorage.getItem(STORAGE.pieceValues));
@@ -127,6 +136,29 @@ function saveWeights(weights) {
   localStorage.setItem(STORAGE.pst,         JSON.stringify(weights.pst));
 }
 
+function loadBlackWeights(fallback) {
+  const base = fallback
+    ? cloneWeightSet(fallback)
+    : {
+        pieceValues : JSON.parse(JSON.stringify(DEFAULT_PIECE_VALUES)),
+        pst         : JSON.parse(JSON.stringify(DEFAULT_PST)),
+      };
+
+  try {
+    const pv  = JSON.parse(localStorage.getItem(STORAGE.pieceValuesBlack));
+    const pst = JSON.parse(localStorage.getItem(STORAGE.pstBlack));
+    if (!pv || !pst) return base;
+    return { pieceValues: pv, pst };
+  } catch {
+    return base;
+  }
+}
+
+function saveBlackWeights(weights) {
+  localStorage.setItem(STORAGE.pieceValuesBlack, JSON.stringify(weights.pieceValues));
+  localStorage.setItem(STORAGE.pstBlack,         JSON.stringify(weights.pst));
+}
+
 function loadWins() {
   try { return JSON.parse(localStorage.getItem(STORAGE.wins)) || {white:0, black:0, draw:0}; }
   catch { return {white:0, black:0, draw:0}; }
@@ -135,7 +167,8 @@ function loadWins() {
 function saveWins(w) { localStorage.setItem(STORAGE.wins, JSON.stringify(w)); }
 
 // Active weights — mutated when user edits them in the UI
-let weights = loadWeights();
+let weights = loadWeights();       // White's evaluation weights
+let blackWeights = loadBlackWeights(weights);
 let wins    = loadWins();
 
 
@@ -161,6 +194,26 @@ function makeInitialBoard() {
 
 function copyBoard(b) { return b.map(r => r.slice()); }
 
+function makeEmptyLearningTrace() {
+  return { white: {}, black: {}, plies: 0 };
+}
+
+function cloneLearningTrace(trace) {
+  return {
+    white: { ...trace.white },
+    black: { ...trace.black },
+    plies: trace.plies,
+  };
+}
+
+function clamp(v, min, max) {
+  return Math.max(min, Math.min(max, v));
+}
+
+const PST_LEARN_RATE = 2.0;
+const PST_CLAMP_MIN = -140;
+const PST_CLAMP_MAX = 140;
+
 
 // ================================================================
 // === GAME STATE
@@ -178,6 +231,7 @@ let state = {
   moveNumber   : 1,
   history      : [],   // stack of {board, castling, enPassant, halfMove, captured}
   positionHistory : [], // position keys for threefold repetition detection
+  learningTrace : makeEmptyLearningTrace(),
   lastMove     : null, // {from:[r,c], to:[r,c]} for highlighting
   capturedByWhite : [],
   capturedByBlack : [],
@@ -395,15 +449,16 @@ function evaluate(board) {
       if (p === 0) continue;
       const color = Math.sign(p);
       const type  = Math.abs(p);
+      const sideWeights = color === WHITE ? weights : blackWeights;
 
       // Material value
-      const matVal = weights.pieceValues[type];
+      const matVal = sideWeights.pieceValues[type];
 
       // Piece-square table bonus
       // For black, mirror the row so the table is from that piece's perspective
       const pstRow = color === WHITE ? r : 7 - r;
-      const pstVal = (weights.pst[type] && weights.pst[type][pstRow])
-        ? weights.pst[type][pstRow][c]
+      const pstVal = (sideWeights.pst[type] && sideWeights.pst[type][pstRow])
+        ? sideWeights.pst[type][pstRow][c]
         : 0;
 
       score += color * (matVal + pstVal);
@@ -643,6 +698,75 @@ function findBestMove(board, color, castling, enPassant, maxDepth) {
 // === GAME LOGIC (apply move to game state, undo, etc.)
 // ================================================================
 
+function recordLearningSnapshot() {
+  if (state.mode !== "bvb") return;
+
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      const piece = state.board[r][c];
+      if (piece === 0) continue;
+
+      const side = piece > 0 ? "white" : "black";
+      const type = Math.abs(piece);
+      const pstRow = piece > 0 ? r : 7 - r;
+      const key = `${type}:${pstRow}:${c}`;
+
+      state.learningTrace[side][key] = (state.learningTrace[side][key] || 0) + 1;
+    }
+  }
+
+  state.learningTrace.plies++;
+}
+
+function getWeightsForColor(color) {
+  return color === WHITE ? weights : blackWeights;
+}
+
+function getTraceForColor(color) {
+  return color === WHITE ? state.learningTrace.white : state.learningTrace.black;
+}
+
+function applyTraceToWeights(weightSet, trace, reward, plies) {
+  const denom = Math.max(1, plies);
+  for (const key in trace) {
+    const [typeStr, rowStr, colStr] = key.split(":");
+    const type = parseInt(typeStr, 10);
+    const row = parseInt(rowStr, 10);
+    const col = parseInt(colStr, 10);
+
+    if (!weightSet.pst[type] || !weightSet.pst[type][row]) continue;
+
+    const delta = reward * PST_LEARN_RATE * (trace[key] / denom);
+    weightSet.pst[type][row][col] = clamp(
+      weightSet.pst[type][row][col] + delta,
+      PST_CLAMP_MIN,
+      PST_CLAMP_MAX
+    );
+  }
+}
+
+function applySelfPlayLearning(winnerColor) {
+  if (state.mode !== "bvb") return;
+  if (state.learningTrace.plies === 0) return;
+
+  const loserColor = -winnerColor;
+  applyTraceToWeights(
+    getWeightsForColor(winnerColor),
+    getTraceForColor(winnerColor),
+    1,
+    state.learningTrace.plies
+  );
+  applyTraceToWeights(
+    getWeightsForColor(loserColor),
+    getTraceForColor(loserColor),
+    -1,
+    state.learningTrace.plies
+  );
+
+  saveWeights(weights);
+  saveBlackWeights(blackWeights);
+}
+
 function applyMove(move) {
   const movedPiece = state.board[move[0]][move[1]];
   const movedType = Math.abs(movedPiece);
@@ -658,6 +782,7 @@ function applyMove(move) {
     halfMove   : state.halfMove,
     lastMove   : state.lastMove,
     positionHistoryLength : state.positionHistory.length,
+    learningTrace : cloneLearningTrace(state.learningTrace),
     capturedByWhite : state.capturedByWhite.slice(),
     capturedByBlack : state.capturedByBlack.slice(),
   });
@@ -685,6 +810,8 @@ function applyMove(move) {
   state.positionHistory.push(
     getPositionKey(state.board, state.turn, state.castling, state.enPassant)
   );
+
+  recordLearningSnapshot();
 }
 
 function undoMove() {
@@ -696,6 +823,7 @@ function undoMove() {
   state.halfMove        = prev.halfMove;
   state.lastMove        = prev.lastMove;
   state.positionHistory = state.positionHistory.slice(0, prev.positionHistoryLength);
+  state.learningTrace   = prev.learningTrace || makeEmptyLearningTrace();
   state.capturedByWhite = prev.capturedByWhite;
   state.capturedByBlack = prev.capturedByBlack;
   state.turn = -state.turn;
@@ -922,6 +1050,9 @@ function handleGameOver(result) {
     setStatus(`Checkmate! ${result.winner} wins!`);
     if (result.winner === "White") wins.white++;
     else                           wins.black++;
+
+    const winnerColor = result.winner === "White" ? WHITE : BLACK;
+    applySelfPlayLearning(winnerColor);
   } else if (result.type === "draw-repetition") {
     setStatus("Draw by threefold repetition.");
     wins.draw++;
@@ -976,6 +1107,7 @@ function startGame() {
   state.positionHistory = [
     getPositionKey(state.board, state.turn, state.castling, state.enPassant)
   ];
+  state.learningTrace   = makeEmptyLearningTrace();
   state.lastMove        = null;
   state.capturedByWhite = [];
   state.capturedByBlack = [];
@@ -988,6 +1120,10 @@ function startGame() {
   document.getElementById("statEval").textContent  = "—";
 
   renderBoard();
+
+  if (state.mode === "bvb") {
+    recordLearningSnapshot();
+  }
 
   if (state.mode === "bvb") {
     setStatus("Bot vs Bot running...");
@@ -1023,6 +1159,7 @@ function hideColourPicker() {
 function buildPieceValueGrid() {
   const grid = document.getElementById("pieceValueGrid");
   grid.innerHTML = "";
+
   const pieceInfo = [
     { type:1, sym:"♙", name:"Pawn"   },
     { type:2, sym:"♘", name:"Knight" },
@@ -1030,23 +1167,57 @@ function buildPieceValueGrid() {
     { type:4, sym:"♖", name:"Rook"   },
     { type:5, sym:"♕", name:"Queen"  },
   ];
-  for (const { type, sym, name } of pieceInfo) {
-    const cell = document.createElement("div");
-    cell.className = "pv-cell";
-    cell.innerHTML = `
-      <span class="pv-symbol">${sym}</span>
-      <span class="pv-name">${name}</span>
-      <input class="pv-input" type="number" value="${weights.pieceValues[type]}" data-type="${type}" />
-    `;
-    grid.appendChild(cell);
+
+  const sideRows = [
+    { side: "white", label: "White Piece Values", symbolIdx: 0, set: weights },
+    { side: "black", label: "Black Piece Values", symbolIdx: 1, set: blackWeights },
+  ];
+
+  for (const sideRow of sideRows) {
+    const block = document.createElement("div");
+    block.className = "pv-side-block";
+
+    const label = document.createElement("div");
+    label.className = "weights-side-label";
+    label.textContent = sideRow.label;
+    block.appendChild(label);
+
+    const row = document.createElement("div");
+    row.className = "pv-side-row";
+
+    for (const { type, name } of pieceInfo) {
+      const cell = document.createElement("div");
+      cell.className = "pv-cell";
+      cell.innerHTML = `
+        <span class="pv-symbol">${SYMBOLS[type][sideRow.symbolIdx]}</span>
+        <span class="pv-name">${name}</span>
+        <input
+          class="pv-input"
+          type="number"
+          value="${sideRow.set.pieceValues[type]}"
+          data-type="${type}"
+          data-side="${sideRow.side}"
+        />
+      `;
+      row.appendChild(cell);
+    }
+
+    block.appendChild(row);
+    grid.appendChild(block);
   }
+
   grid.querySelectorAll(".pv-input").forEach(inp => {
     inp.addEventListener("change", () => {
       const type = parseInt(inp.dataset.type);
       const val  = parseInt(inp.value);
       if (!isNaN(val)) {
-        weights.pieceValues[type] = val;
-        saveWeights(weights);
+        if (inp.dataset.side === "black") {
+          blackWeights.pieceValues[type] = val;
+          saveBlackWeights(blackWeights);
+        } else {
+          weights.pieceValues[type] = val;
+          saveWeights(weights);
+        }
       }
     });
   });
@@ -1066,10 +1237,20 @@ function buildPstSelect() {
   buildPstGrid(1);
 }
 
-function buildPstGrid(type) {
-  const grid = document.getElementById("pstGrid");
-  grid.innerHTML = "";
-  const pst = weights.pst[type];
+function buildPstSideSection(type, side) {
+  const sideSet = side === "black" ? blackWeights : weights;
+  const section = document.createElement("div");
+  section.className = "pst-side-section";
+
+  const label = document.createElement("div");
+  label.className = "weights-side-label";
+  label.textContent = side === "black" ? "Black PST" : "White PST";
+  section.appendChild(label);
+
+  const grid = document.createElement("div");
+  grid.className = "pst-side-grid";
+
+  const pst = sideSet.pst[type];
   const flat = pst.flat();
   const min = Math.min(...flat), max = Math.max(...flat);
 
@@ -1082,25 +1263,43 @@ function buildPstGrid(type) {
       const cell = document.createElement("div");
       cell.className = "pst-cell";
       cell.style.background = bg;
+
       const inp = document.createElement("input");
-      inp.className   = "pst-input";
-      inp.type        = "number";
-      inp.value       = val;
-      inp.dataset.r   = r;
-      inp.dataset.c   = c;
-      inp.dataset.pst = type;
+      inp.className    = "pst-input";
+      inp.type         = "number";
+      inp.value        = val;
+      inp.dataset.r    = r;
+      inp.dataset.c    = c;
+      inp.dataset.pst  = type;
+      inp.dataset.side = side;
       inp.addEventListener("change", () => {
-        const v = parseInt(inp.value);
+        const v = parseFloat(inp.value);
         if (!isNaN(v)) {
-          weights.pst[type][r][c] = v;
-          saveWeights(weights);
+          if (side === "black") {
+            blackWeights.pst[type][r][c] = v;
+            saveBlackWeights(blackWeights);
+          } else {
+            weights.pst[type][r][c] = v;
+            saveWeights(weights);
+          }
           buildPstGrid(type); // re-render to update colours
         }
       });
+
       cell.appendChild(inp);
       grid.appendChild(cell);
     }
   }
+
+  section.appendChild(grid);
+  return section;
+}
+
+function buildPstGrid(type) {
+  const grid = document.getElementById("pstGrid");
+  grid.innerHTML = "";
+  grid.appendChild(buildPstSideSection(type, "white"));
+  grid.appendChild(buildPstSideSection(type, "black"));
 }
 
 
@@ -1174,7 +1373,12 @@ document.querySelectorAll("[data-speed]").forEach(btn => {
 document.getElementById("btnResetWeights").addEventListener("click", () => {
   weights.pieceValues = JSON.parse(JSON.stringify(DEFAULT_PIECE_VALUES));
   weights.pst         = JSON.parse(JSON.stringify(DEFAULT_PST));
+  blackWeights = {
+    pieceValues : JSON.parse(JSON.stringify(DEFAULT_PIECE_VALUES)),
+    pst         : JSON.parse(JSON.stringify(DEFAULT_PST)),
+  };
   saveWeights(weights);
+  saveBlackWeights(blackWeights);
   buildPieceValueGrid();
   buildPstGrid(parseInt(document.getElementById("pstSelect").value));
 });
